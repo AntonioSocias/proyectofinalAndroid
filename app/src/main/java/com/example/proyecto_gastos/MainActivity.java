@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                         Proyecto proyecto = (Proyecto) lv_proyectos.getAdapter().getItem(position);
                         //PASO EL OBJETO
                         intent.putExtra("proyecto", proyecto);
-
+                        //PRUEBA DNIADWI
                         startActivity(intent);
                     }
                 });
