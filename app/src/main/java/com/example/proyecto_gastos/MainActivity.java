@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                                         /**
                                          * CÓDIGO DE ELIMINAR EL ELEMENTO
                                          */
-                                        Call<Void> llamada = proyectoService.borrarProyecto(i);
+                                        Call<Void> llamada = proyectoService.borrarProyecto(lista_proyectos.get(i).getId());
                                         llamada.enqueue(new Callback<Void>() {
                                             @Override
                                             public void onResponse(Call<Void> call, Response<Void> response) {

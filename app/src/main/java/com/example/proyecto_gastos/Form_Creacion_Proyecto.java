@@ -89,12 +89,21 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
 
     }
     public void crearProyectoForm(){
-        int id = 20;
+        int id = 1;
+        /**
+         * ME FALTARIA VER EL TEMA DEL ADMINISTRADOR -----------------------------------------
+         */
         int administrador =1;
-        int moneda =2;
-        int total_gastos =200;
-        String titulo ="PRUEBA ANDROID";
-        String descripcion ="";
+        /**
+         * 1 -> EURO, 2 -> DOLAR, 3 -> YEN
+         */
+        int moneda = spn_moneda.getSelectedItemPosition()+1;
+        /**
+         * Se inicializa el total de gastos a 0, segun se añadan gastos se le sumará la cantidad
+         */
+        int total_gastos =0;
+        String titulo =et_titulo.getText().toString();
+        String descripcion =et_desc.getText().toString();
 
 
         Projects proyectoService = retrofit.create(Projects.class);
