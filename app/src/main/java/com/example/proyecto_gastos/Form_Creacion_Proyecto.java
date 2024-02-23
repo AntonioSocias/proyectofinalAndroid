@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
 import com.example.proyecto_gastos.models.Proyecto;
@@ -114,10 +115,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
                 /**
                  * Dialogo que indica al usuario que se ha creado correctamente
                  */
-                AlertDialog.Builder builder = new AlertDialog.Builder(Form_Creacion_Proyecto.this);
-                builder.setMessage("Proyecto creado con exito")
-                        .setTitle("Creación proyecto");
-                builder.create().show();
+                Toast.makeText(Form_Creacion_Proyecto.this, "Proyecto creado con exito", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Form_Creacion_Proyecto.this, MainActivity.class);
                 startActivity(intent);
             }
@@ -125,8 +123,8 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Proyecto> call, Throwable t) {
+                Toast.makeText(Form_Creacion_Proyecto.this, "El proyecto no se ha creado", Toast.LENGTH_SHORT).show();
 
-                String error = "Error";
             }
         });
 
