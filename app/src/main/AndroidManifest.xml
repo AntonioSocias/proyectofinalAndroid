@@ -8,6 +8,7 @@
 
     <application
         android:allowBackup="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -28,13 +29,6 @@
         </activity>
         <activity
             android:name=".Detalles_Proyectos"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".c_adapter_proyecto"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

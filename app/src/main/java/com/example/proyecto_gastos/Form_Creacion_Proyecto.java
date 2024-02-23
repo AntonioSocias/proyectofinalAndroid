@@ -32,15 +32,15 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
     Button btn_aceptar, btn_cancelar;
     Spinner spn_moneda;
 
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl(getString(R.string.url_domain))
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
+    Retrofit retrofit;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_creacion_proyecto);
-
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.url_domain))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
         et_titulo =findViewById(R.id.editTextTitulo);
         et_desc =findViewById(R.id.editTextDescripcion);
@@ -59,7 +59,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         //RECUPERO EL ArrayAdapter con el recurso
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
-                R.array.planets_array,
+                R.array.tipos_monedas,
                 android.R.layout.simple_spinner_item
         );
 

@@ -2,5 +2,5 @@
     <string name="app_name">Proyecto_Gastos</string>
     <string name="moneda">$</string>
     <string name="formato_numero">%.2f</string>
-    <string name="url_domain">http://anotniosocias.eu.pythonanywhere.com/</string>
+    <string name="url_domain">http://89.168.33.89:5000/</string>
 </resources>

@@ -34,19 +34,20 @@ public class MainActivity extends AppCompatActivity {
     ListView lv_proyectos;
     FloatingActionButton btn_crearProyecto;
     static List<Proyecto> lista_proyectos;
-
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("https://anotniosocias.eu.pythonanywhere.com//")//VOLVER A PONER QUE ACCEDA A STRINGS
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
-
+    Retrofit retrofit;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         lv_proyectos = findViewById(R.id.lv_listado_proyectos);
         btn_crearProyecto = findViewById(R.id.btn_crearProyecto);
-
+        /**
+         * GENERO EL RETROFIT
+         */
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getResources().getString(R.string.url_domain))//VOLVER A PONER QUE ACCEDA A STRINGS
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
         /**
          * LLAMO A MÉTODO PARA RELLENAR EL LISTVIEW
          */
@@ -75,8 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 lista_proyectos = response.body();
                 lv_proyectos = findViewById(R.id.lv_listado_proyectos);
                 //COMENTO CUSTOR ADAPTER
-                lv_proyectos.setAdapter(new CustomAdapter_proyecto(MainActivity.this, lista_proyectos));
-                //ADAPTER CON LA LISTA DE USUARIOS
+                lv_proyectos.setAdapter(new CustomAdapter_proyecto(MainActivity.this, lista_proyectos));//ADAPTER CON LA LISTA DE USUARIOS
                 /**
                  * ACCIÓN DE LOS PROYECTOS
                  */
@@ -108,8 +108,25 @@ public class MainActivity extends AppCompatActivity {
                                         /**
                                          * CÓDIGO DE ELIMINAR EL ELEMENTO
                                          */
-                                        lista_proyectos.remove(i);
-                                        lv_proyectos.setAdapter(new CustomAdapter_proyecto(MainActivity.this, lista_proyectos));
+                                        Call<Void> llamada = proyectoService.borrarProyecto(i);
+                                        llamada.enqueue(new Callback<Void>() {
+                                            @Override
+                                            public void onResponse(Call<Void> call, Response<Void> response) {
+                                                Toast.makeText(MainActivity.this, "Proyecto borrado de la base de datos", Toast.LENGTH_SHORT).show();
+                                                lista_proyectos.remove(i);
+                                                /**
+                                                 * Indico al adapter del listview de proyectos que he alterado
+                                                 * la lista y debe refrescarse
+                                                 */
+                                                ((CustomAdapter_proyecto) lv_proyectos.getAdapter()).notifyDataSetChanged();
+
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<Void> call, Throwable t) {
+                                                Toast.makeText(MainActivity.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
 
                                     }
                                 })
