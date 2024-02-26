@@ -27,8 +27,14 @@ public class Detalles_Proyectos extends AppCompatActivity {
 
         txTitulo.setText(proyecto.getTitulo());
 
-
+        /**
+         * LISTA DE GASTOS
+         */
         List listaGastos = new ArrayList();
+        /**
+         * METODO REST DONDE DEVUELVA TODOS LOS GASTOS ASOCIADOS DONDE EL CAMPO PROYECTO SEA
+         * EL ID DEL PROYECTO AL QUE HE ENTRADO
+         */
         listaGastos.add(new Gasto("Prueba 1", "Bruno", 200.2F, new Date()));
         int i=1;
         while (i<20){
@@ -36,5 +42,14 @@ public class Detalles_Proyectos extends AppCompatActivity {
             listaGastos.add(new Gasto("Prueba "+i, "Bruno", 200.2F, new Date()));
         }
         lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, listaGastos));
+
+        /**
+         * LISTA DE PARTICIPANTES
+         */
+        List listaParticipantes = new ArrayList();
+
+        /**
+         * METODO REST DONDE DEVUELVA TODOS LOS PARTICIPANTES DONDE EL
+         */
     }
 }
