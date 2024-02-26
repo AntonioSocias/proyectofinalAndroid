@@ -12,16 +12,16 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface Projects {
-    @GET("projects")
+    @GET("proyectos")
     Call<List<Proyecto>> obtenerProyectos();
 
-    @GET("projects/{proyecto_id}")
+    @GET("proyectos/{proyecto_id}")
     Call<Proyecto> obtenerProyecto(@Path("proyecto_id") int proyecto_id);
 
-    @POST("projects")
+    @POST("proyectos")
     Call<Proyecto>crearProyecto(@Body Proyecto proyecto );
 
-    @DELETE("projects/{proyecto_id}")
+    @DELETE("proyectos/{proyecto_id}")
     Call<Void> borrarProyecto(@Path("proyecto_id") int proyecto_id);
 
 }
