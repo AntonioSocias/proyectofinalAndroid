@@ -16,13 +16,8 @@ import com.example.proyecto_gastos.models.Proyecto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public void crearListView(){
-        Projects proyectoService = retrofit.create(Projects.class);
+    private void crearListView(){
+        Proyectos proyectoService = retrofit.create(Proyectos.class);
         Call<List<Proyecto>> llamada = proyectoService.obtenerProyectos();
         llamada.enqueue(new Callback<List<Proyecto>>() {
             @Override

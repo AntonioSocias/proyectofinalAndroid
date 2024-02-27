@@ -2,21 +2,32 @@ package com.example.proyecto_gastos.models;
 
 import com.example.proyecto_gastos.R;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Gasto {
+public class Gasto implements Serializable{
+    int id;
     String titulo, pagado;
     Float cantidad;
     Date fecha;
 
 
-    public Gasto(String titulo, String pagado, Float cantidad, Date fecha) {
+    public Gasto(int id, String titulo, String pagado, Float cantidad, Date fecha) {
+        this.id=id;
         this.titulo = titulo;
         this.pagado = pagado;
         this.cantidad = cantidad;
         this.fecha = fecha;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitulo() {

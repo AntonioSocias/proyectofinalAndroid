@@ -2,25 +2,16 @@ package com.example.proyecto_gastos;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
 import com.example.proyecto_gastos.models.Proyecto;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -77,7 +68,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         btn_aceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                crearProyectoForm();
+                crearProyecto();
             }
         });
 
@@ -89,7 +80,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         });
 
     }
-    public void crearProyectoForm(){
+    public void crearProyecto(){
         int id = 1;
         /**
          * ME FALTARIA VER EL TEMA DEL ADMINISTRADOR -----------------------------------------
@@ -107,7 +98,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         String descripcion =et_desc.getText().toString();
 
 
-        Projects proyectoService = retrofit.create(Projects.class);
+        Proyectos proyectoService = retrofit.create(Proyectos.class);
         Call<Proyecto> llamada = proyectoService.crearProyecto(new Proyecto(id, administrador, moneda, total_gastos, titulo, descripcion));
         llamada.enqueue(new Callback<Proyecto>() {
             @Override

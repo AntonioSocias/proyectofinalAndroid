@@ -62,7 +62,8 @@
         android:contentDescription='"Crear proyecto"'
         android:src="@android:drawable/ic_input_add"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:layout_editor_absoluteX="341dp" />
+        tools:layout_editor_absoluteX="341dp"
+        tools:ignore="MissingConstraints" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
