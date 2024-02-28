@@ -33,7 +33,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Detalles_Proyectos extends AppCompatActivity {
     TextView txTitulo;
-    ListView lv_gastos;
+    ListView lv_gastos, lv_usuarios;
     FloatingActionButton btn_crearGasto, btn_crearParticipante;
     Retrofit retrofit;
     static List<Gasto> lista_gastos_proyecto;
@@ -50,26 +50,11 @@ public class Detalles_Proyectos extends AppCompatActivity {
         txTitulo = findViewById(R.id.textView2);
         lv_gastos = findViewById(R.id.lv_listado_gastos);
         btn_crearGasto = findViewById(R.id.btn_crearGasto);
+        btn_crearParticipante = findViewById(R.id.btn_crearParticipante);
         txTitulo.setText(proyecto.getTitulo());
 
-        /**
-         * LISTA DE GASTOS
-         */
-        List listaGastos = new ArrayList();
-        /**
-         * METODO REST DONDE DEVUELVA TODOS LOS GASTOS ASOCIADOS DONDE EL CAMPO PROYECTO SEA
-         * EL ID DEL PROYECTO AL QUE HE ENTRADO
-         */
+
         crearListView(proyecto.getId());
-
-        /**
-         * LISTA DE PARTICIPANTES
-         */
-        List listaParticipantes = new ArrayList();
-
-        /**
-         * METODO REST DONDE DEVUELVA TODOS LOS PARTICIPANTES DONDE EL
-         */
 
         /**
          * BOTON PARA CREAR UN NUEVO GASTO
@@ -77,7 +62,8 @@ public class Detalles_Proyectos extends AppCompatActivity {
         btn_crearGasto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(Detalles_Proyectos.this, Form_Creacion_Gasto.class);
+                startActivity(intent);
             }
         });
         btn_crearParticipante.setOnClickListener(new View.OnClickListener() {
@@ -90,13 +76,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
     private void crearListView(int id_proyecto){
         Proyectos proyectoService = retrofit.create(Proyectos.class);
         Call<List<Gasto>> llamada = proyectoService.obtenerGastosProyecto(id_proyecto);
-            llamada.enqueue(new Callback<List<Gasto>>() {
+        llamada.enqueue(new Callback<List<Gasto>>() {
             @Override
             public void onResponse(Call<List<Gasto>> call, Response<List<Gasto>> response) {
                 lista_gastos_proyecto = response.body();
                 lv_gastos = findViewById(R.id.lv_listado_gastos);
                 //COMENTO CUSTOR ADAPTER
-                lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, lista_gastos_proyecto));//ADAPTER CON LA LISTA DE USUARIOS
+                lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, lista_gastos_proyecto));
                 /**
                  * ACCIÓN DE LOS GASTOS
                  */
@@ -120,7 +106,6 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 lv_gastos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-
                         AlertDialog.Builder builder = new AlertDialog.Builder(Detalles_Proyectos.this);
                         builder.setMessage("¿Quiere eliminar el gasto " + lista_gastos_proyecto.get(i).getTitulo() + "?")
                                 .setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
@@ -198,8 +183,49 @@ public class Detalles_Proyectos extends AppCompatActivity {
 
                 // Aquí puedes hacer lo que quieras con el objeto Usuario creado
                 // Por ejemplo, enviarlo a una base de datos, mostrarlo en un TextView, etc.
+                crearUsuario(usuario);
             }
         });
+
+        // Mostrar el diálogo
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+    private void crearUsuario(Usuario usuario){
+        Usuarios usuarioService = retrofit.create(Usuarios.class);
+        Call<Usuario> llamada = usuarioService.crearusuario(usuario);
+        llamada.enqueue(new Callback<Usuario>() {
+            @Override
+            public void onResponse(Call<Usuario> call, Response<Usuario> response) {
+                /**
+                 * Dialogo que indica al usuario que se ha creado correctamente
+                 */
+                Toast.makeText(Detalles_Proyectos.this, "Usuario añadido", Toast.LENGTH_SHORT).show();
+
+            }
+
+
+            @Override
+            public void onFailure(Call<Usuario> call, Throwable t) {
+                Toast.makeText(Detalles_Proyectos.this, "El usuario no se ha añadido", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+    }
+    private void mostrarDialogoCrearGasto() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Crear Gasto");
+
+        // Layout de EditTexts para ingresar datos del usuario
+        final EditText editTextTitulo = new EditText(this);
+        editTextTitulo.setHint("Concepto");
+        final EditText editTextCantidad = new EditText(this);
+        editTextCantidad.setHint("Cantidad");
+        final EditText editTextPagador = new EditText(this);
+        editTextPagador.setHint("Pagador");
+        final EditText editTextFecha = new EditText(this);
+        editTextFecha.setHint("Fecha");
+
 
         // Mostrar el diálogo
         AlertDialog dialog = builder.create();

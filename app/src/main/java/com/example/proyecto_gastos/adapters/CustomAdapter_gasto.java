@@ -49,7 +49,7 @@ public class CustomAdapter_gasto extends ArrayAdapter {
 
         if (currentItem != null){
             textViewTitulo.setText(currentItem.getTitulo());
-            textViewPagado.setText("Ha sido pagado por " + currentItem.getPagado());
+            textViewPagado.setText("Ha sido pagado por " + currentItem.getPagador());
             textViewCantidad.setText(
                     currentItem.getCantidadFormateada() + mContext.getString(R.string.moneda));
             textViewFecha.setText(currentItem.getFechaFormateada());

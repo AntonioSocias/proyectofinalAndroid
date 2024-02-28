@@ -9,15 +9,15 @@ import java.util.Locale;
 
 public class Gasto implements Serializable{
     int id;
-    String titulo, pagado;
+    String titulo, pagador;
     Float cantidad;
     Date fecha;
 
 
-    public Gasto(int id, String titulo, String pagado, Float cantidad, Date fecha) {
+    public Gasto(int id, String titulo, String pagador, Float cantidad, Date fecha) {
         this.id=id;
         this.titulo = titulo;
-        this.pagado = pagado;
+        this.pagador = pagador;
         this.cantidad = cantidad;
         this.fecha = fecha;
     }
@@ -38,12 +38,12 @@ public class Gasto implements Serializable{
         this.titulo = titulo;
     }
 
-    public String getPagado() {
-        return pagado;
+    public String getPagador() {
+        return pagador;
     }
 
-    public void setPagado(String pagado) {
-        this.pagado = pagado;
+    public void setPagador(String pagado) {
+        this.pagador = pagado;
     }
 
     public Float getCantidad() {
