@@ -8,18 +8,19 @@ import java.util.Date;
 import java.util.Locale;
 
 public class Gasto implements Serializable{
-    int id;
-    String titulo, pagador;
+    int id, proyecto,pagador;
+    String titulo;
     Float cantidad;
     Date fecha;
 
 
-    public Gasto(int id, String titulo, String pagador, Float cantidad, Date fecha) {
+    public Gasto(int id, String titulo, int pagador, Float cantidad, Date fecha, int proyecto) {
         this.id=id;
         this.titulo = titulo;
         this.pagador = pagador;
         this.cantidad = cantidad;
         this.fecha = fecha;
+        this.proyecto = proyecto;
     }
 
     public int getId() {
@@ -38,11 +39,11 @@ public class Gasto implements Serializable{
         this.titulo = titulo;
     }
 
-    public String getPagador() {
+    public int getPagador() {
         return pagador;
     }
 
-    public void setPagador(String pagado) {
+    public void setPagador(int pagado) {
         this.pagador = pagado;
     }
 
@@ -74,5 +75,13 @@ public class Gasto implements Serializable{
 
     public void setFecha(Date fecha) {
         this.fecha = fecha;
+    }
+
+    public int getProyecto() {
+        return proyecto;
+    }
+
+    public void setProyecto(int proyecto) {
+        this.proyecto = proyecto;
     }
 }

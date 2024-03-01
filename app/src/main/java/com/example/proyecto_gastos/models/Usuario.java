@@ -4,11 +4,14 @@ import java.io.Serializable;
 
 public class Usuario implements Serializable {
     int id;
-    String Nombre;
+    int proyecto;
+    String nombre;
 
-    public Usuario(int id, String nombre) {
+
+    public Usuario(int id, String nombre, int proyecto) {
         this.id = id;
-        this.Nombre = nombre;
+        this.nombre = nombre;
+        this.proyecto = proyecto;
     }
 
     public int getId() {
@@ -20,10 +23,17 @@ public class Usuario implements Serializable {
     }
 
     public String getNombre() {
-        return Nombre;
+        return nombre;
     }
 
     public void setNombre(String nombre) {
-        Nombre = nombre;
+        nombre = nombre;
+    }
+    public int getProyecto() {
+        return proyecto;
+    }
+
+    public void setProyecto(int proyecto) {
+        this.proyecto = proyecto;
     }
 }

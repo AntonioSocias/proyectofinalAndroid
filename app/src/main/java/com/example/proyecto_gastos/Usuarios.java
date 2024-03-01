@@ -19,7 +19,7 @@ public interface Usuarios {
     Call<Usuario> obtenerUsuario(@Path("usuario_id") int usuario_id);
 
     @POST("usuario")
-    Call<Usuario>crearusuario(@Body Usuario usuario );
+    Call<Usuario>crearUsuario(@Body Usuario usuario );
 
     @DELETE("usuarios/{usuario_id}")
     Call<Void> borrarUsuario(@Path("usuario_id") int usuario_id);

@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -13,10 +14,13 @@ import android.widget.Toast;
 
 import com.example.proyecto_gastos.models.Gasto;
 import com.example.proyecto_gastos.models.Proyecto;
+import com.example.proyecto_gastos.models.Usuario;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,11 +33,12 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
     Spinner spn_pagador;
     Button btn_aceptar, btn_cancelar;
     Retrofit retrofit;
+    List<Usuario> lista_usuarios;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_creacion_gasto);
-
+        Proyecto proyecto = (Proyecto) getIntent().getSerializableExtra("proyecto");
         retrofit = new Retrofit.Builder()
                 .baseUrl(getResources().getString(R.string.url_domain))//VOLVER A PONER QUE ACCEDA A STRINGS
                 .addConverterFactory(GsonConverterFactory.create())
@@ -47,6 +52,12 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
         btn_cancelar = findViewById(R.id.buttonCancelar);
 
 
+        /**
+         * OBTENGO LOS USUARIOS PERTENECIENTES AL PROYECTO
+         * Y LOS METO EN EL LISTVIEW
+         */
+        obtenerUsariosProyecto(proyecto);
+
         btn_aceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -59,24 +70,31 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
                     Float cantidadFloat = null;
                     cantidadFloat = Float.parseFloat(cantidadString);
                     /**
-                     * CONVERSION FECHA
+                     * CONVERSION FECHA ---------MIRAR DE USAR UN DATEPICKER
                      */
                     String fechaString = et_fecha.getText().toString();
                     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                    Date fechaDate = null;
 
-                    fechaDate = dateFormat.parse(fechaString);
+
+                    Date fechaDate = dateFormat.parse(fechaString);
 
                     /**
                      * MODIFICAR PAGADOR SPINNER
                      */
-                    String pagador = et_concepto.getText().toString();
+                    String pagadorNombre = spn_pagador.getSelectedItem().toString();
+                    int pagadorId = -1;
+                    for (Usuario usuario : lista_usuarios) {
+                        if (usuario.getNombre().equals(pagadorNombre)){
+                            pagadorId = usuario.getId();
+                        }
+                    }
 
-                    Gasto gasto = new Gasto(1, concepto, pagador, cantidadFloat, fechaDate);
+                    Gasto gasto = new Gasto(1, concepto, pagadorId, cantidadFloat, fechaDate, proyecto.getId());
                     crearGasto(gasto);
 
-                }catch (ParseException e){
+                } catch (ParseException e) {
                     e.printStackTrace();
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -84,26 +102,47 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
             }
         });
     }
-    public void crearGasto(Gasto gasto){
+
+    public void crearGasto(Gasto gasto) {
         Gastos gastosService = retrofit.create(Gastos.class);
         Call<Gasto> llamada = gastosService.crearGasto(gasto);
         llamada.enqueue(new Callback<Gasto>() {
             @Override
             public void onResponse(Call<Gasto> call, Response<Gasto> response) {
-                /**
-                 * Dialogo que indica al usuario que se ha creado correctamente
-                 */
-                Toast.makeText(Form_Creacion_Gasto.this, "Proyecto creado con exito", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(Form_Creacion_Gasto.this, MainActivity.class);
-                startActivity(intent);
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("gastoCreado", gasto); // Suponiendo que 'gasto' es el objeto Gasto creado
+                setResult(Form_Creacion_Gasto.RESULT_OK, resultIntent);
+                finish();
+            }
+            @Override
+            public void onFailure(Call<Gasto> call, Throwable t) {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
+    }
+
+    public void obtenerUsariosProyecto(Proyecto proyecto) {
+        Proyectos usuariosService = retrofit.create(Proyectos.class);
+        Call<List<Usuario>> llamada = usuariosService.obtenerUsuariosProyecto(proyecto.getId());
+        llamada.enqueue(new Callback<List<Usuario>>() {
+            @Override
+            public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
+                lista_usuarios = response.body();
+                List<String> lista_nombres_usuarios = new ArrayList<>();
+                for (Usuario usuario:lista_usuarios) {
+                    lista_nombres_usuarios.add(usuario.getNombre());
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(Form_Creacion_Gasto.this, android.R.layout.simple_spinner_item, lista_nombres_usuarios);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spn_pagador.setAdapter(adapter);
             }
 
 
             @Override
-            public void onFailure(Call<Gasto> call, Throwable t) {
-
+            public void onFailure(Call<List<Usuario>> call, Throwable t) {
+                Toast.makeText(Form_Creacion_Gasto.this, "NO SE HA PODIDO CREAR EL GASTO", Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 }
