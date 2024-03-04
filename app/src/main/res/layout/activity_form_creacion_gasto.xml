@@ -34,9 +34,10 @@
             android:id="@+id/editTextDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="dd/mm/yyyy"
             android:ems="10"
-            android:inputType="date" />
+            android:hint="dd/mm/yyyy"
+            android:inputType="date"
+            android:minHeight="48dp" />
 
         <LinearLayout
             android:layout_width="match_parent"

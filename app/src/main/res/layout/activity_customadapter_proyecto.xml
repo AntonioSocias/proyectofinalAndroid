@@ -10,7 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:cardBackgroundColor="@color/principal"
-        app:cardCornerRadius="10dp">
+        app:cardCornerRadius="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
