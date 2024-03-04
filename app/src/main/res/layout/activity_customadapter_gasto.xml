@@ -25,7 +25,7 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:id="@+id/textViewTituloGasto"
+                    android:id="@+id/textViewNombreUsuario"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -33,7 +33,7 @@
                     android:textColor="@color/textoHighlate" />
 
                 <TextView
-                    android:id="@+id/textViewCantidadGasto"
+                    android:id="@+id/textViewGastoUsuario"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"

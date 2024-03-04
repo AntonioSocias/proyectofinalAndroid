@@ -3,6 +3,7 @@ package com.example.proyecto_gastos;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,12 +11,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proyecto_gastos.login.LoginActivity;
 import com.example.proyecto_gastos.models.Proyecto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
+import com.example.proyecto_gastos.models.Usuario;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -26,34 +32,34 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    Intent intent;
+    TextView txtCabecera;
+    Button btn_logOut;
     ListView lv_proyectos;
     FloatingActionButton btn_crearProyecto;
     static List<Proyecto> lista_proyectos;
     Retrofit retrofit;
+    String usuarioString;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        boolean isFirstTime = sharedPreferences.getBoolean("isFirstTime", true);
-
-        /**
-         * RETOCAR PRIMERA VEZ ---------------------------------------------------------------
-         */
-        if (isFirstTime) {
-            // La aplicación se está ejecutando por primera vez, mostrar una actividad para que el usuario ingrese su información
-            Intent intent = new Intent(MainActivity.this, MainActivity.class);
-            startActivity(intent);
-
-            // Marcar la aplicación como ya iniciada
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("isFirstTime", false);
-            editor.apply();
-        }
         setContentView(R.layout.activity_main);
         lv_proyectos = findViewById(R.id.lv_listado_proyectos);
         btn_crearProyecto = findViewById(R.id.btn_crearProyecto);
+        txtCabecera = findViewById(R.id.textViewCabecera);
+        btn_logOut = findViewById(R.id.btn_logOut);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        usuarioString = sharedPreferences.getString("usuario", "");
+
+        if (usuarioString.isEmpty()) {
+            // No se encontró ningún usuario en SharedPreferences
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            //Ajusto la cabecera para que me dé la bienvenida por primera vez
+        }else{
+            txtCabecera.setText("Bienvenido " + usuarioString);
+        }
+
         /**
          * GENERO EL RETROFIT
          */
@@ -76,6 +82,16 @@ public class MainActivity extends AppCompatActivity {
                  * ENVIAR A ACTIVITY CON FORMULARIO DE CREACIÓN
                  */
                 Intent intent = new Intent(MainActivity.this, Form_Creacion_Proyecto.class);
+                intent.putExtra("usuario", usuarioString);
+                startActivity(intent);
+            }
+        });
+        btn_logOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editor.putString("usuario", "");
+                editor.apply();
+                Intent intent = new Intent(MainActivity.this, MainActivity.class);
                 startActivity(intent);
             }
         });
@@ -162,7 +178,5 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("API_REQUEST_FAILURE", "Error: " + t.getMessage());
             }
         });
-
     }
-
 }

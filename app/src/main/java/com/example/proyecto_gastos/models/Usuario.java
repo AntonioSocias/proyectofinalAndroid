@@ -1,17 +1,21 @@
 package com.example.proyecto_gastos.models;
 
+import androidx.annotation.Nullable;
+
 import java.io.Serializable;
 
 public class Usuario implements Serializable {
     int id;
     int proyecto;
-    String nombre;
+    String nombre, password;
 
 
-    public Usuario(int id, String nombre, int proyecto) {
+
+    public Usuario(int id, String nombre,String password, int proyecto) {
         this.id = id;
         this.nombre = nombre;
         this.proyecto = proyecto;
+        this.password = password;
     }
 
     public int getId() {
@@ -35,5 +39,13 @@ public class Usuario implements Serializable {
 
     public void setProyecto(int proyecto) {
         this.proyecto = proyecto;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

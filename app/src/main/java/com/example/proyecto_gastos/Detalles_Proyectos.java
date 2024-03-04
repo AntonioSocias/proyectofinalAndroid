@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.example.proyecto_gastos.adapters.CustomAdapter_gasto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
+import com.example.proyecto_gastos.adapters.CustomAdapter_usuario;
 import com.example.proyecto_gastos.models.Gasto;
 import com.example.proyecto_gastos.models.Proyecto;
 import com.example.proyecto_gastos.models.Usuario;
@@ -33,30 +34,36 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Detalles_Proyectos extends AppCompatActivity {
-    TextView txTitulo;
+    TextView txTitulo, txtGastoTotal, txtAdministrador;
     ListView lv_gastos, lv_usuarios;
+    String administrador;
+    Float gastoTotal;
+    Proyecto proyecto;
     FloatingActionButton btn_crearGasto, btn_crearParticipante;
     Retrofit retrofit;
     static List<Gasto> lista_gastos_proyecto;
-    static List<Usuario> lista_usuarios_proyecto;
+    static List<Usuario> lista_usuarios_proyecto, lista_usuarios;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detalles_proyectos);
-        Proyecto proyecto = (Proyecto) getIntent().getSerializableExtra("proyecto");
+        proyecto = (Proyecto) getIntent().getSerializableExtra("proyecto");
         retrofit = new Retrofit.Builder()
                 .baseUrl(getResources().getString(R.string.url_domain))//VOLVER A PONER QUE ACCEDA A STRINGS
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
+        gastoTotal=0f;
         txTitulo = findViewById(R.id.textView2);
+        txtGastoTotal = findViewById(R.id.textViewGastoTotal);
+        txtAdministrador = findViewById(R.id.textViewAdministrador);
         lv_gastos = findViewById(R.id.lv_listado_gastos);
         btn_crearGasto = findViewById(R.id.btn_crearGasto);
         btn_crearParticipante = findViewById(R.id.btn_crearParticipante);
         txTitulo.setText(proyecto.getTitulo());
 
-
         crearListViewGastos(proyecto.getId());
+        crearListViewUsuarios(proyecto.getId());
+        obtenerUsuarios();
 
         /**
          * BOTON PARA CREAR UN NUEVO GASTO
@@ -66,14 +73,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(Detalles_Proyectos.this, Form_Creacion_Gasto.class);
                 intent.putExtra("proyecto", proyecto);
-                intent.putExtra("gasto", new Gasto(0,"",0, 0f, null, 0));
                 startActivityForResult(intent, 1);
             }
         });
         btn_crearParticipante.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mostrarDialogoCrearUsuario(proyecto);
+                mostrarDialogoAñadirUsuario();
             }
         });
     }
@@ -92,6 +98,15 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 lv_gastos = findViewById(R.id.lv_listado_gastos);
                 //COMENTO CUSTOR ADAPTER
                 lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, lista_gastos_proyecto));
+                /**
+                 * OBTENGO EL GASTO TOTAL Y LO MUESTRO POR EL TEXTVIEW
+                 */
+                for (Gasto gasto: lista_gastos_proyecto) {
+                    gastoTotal += gasto.getCantidad();
+                }
+                String gastoTotalStr = String.format("%.2f", gastoTotal);
+                txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
+
                 /**
                  * ACCIÓN DE LOS GASTOS
                  */
@@ -165,60 +180,155 @@ public class Detalles_Proyectos extends AppCompatActivity {
             }
         });
     }
-    private void mostrarDialogoCrearUsuario(Proyecto proyecto) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Crear Usuario");
-
-        // Layout de EditTexts para ingresar datos del usuario
-        final EditText editTextId = new EditText(this);
-        editTextId.setHint("ID");
-        final EditText editTextNombreUsuario = new EditText(this);
-        editTextNombreUsuario.setHint("Nombre de Usuario");
-
-        // Añadir los EditTexts al diálogo
-        builder.setView(editTextId);
-        builder.setView(editTextNombreUsuario);
-
-        // Botón de "Aceptar"
-        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+    private void crearListViewUsuarios(int id_proyecto){
+        Proyectos proyectoService = retrofit.create(Proyectos.class);
+        Call<List<Usuario>> llamada = proyectoService.obtenerUsuariosProyecto(id_proyecto);
+        llamada.enqueue(new Callback<List<Usuario>>() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Obtener los datos ingresados por el usuario
-                String nombreUsuario = editTextNombreUsuario.getText().toString();
+            public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
+                lista_usuarios_proyecto = response.body();
+                lv_usuarios = findViewById(R.id.lv_listado_participantes);
+                //COMENTO CUSTOR ADAPTER
+                lv_usuarios.setAdapter(new CustomAdapter_usuario(Detalles_Proyectos.this, lista_usuarios_proyecto));
+                /**
+                 * OBTENGO EL GASTO TOTAL Y LO MUESTRO POR EL TEXTVIEW
+                 */
+                for (Usuario usuario: lista_usuarios_proyecto) {
+                    administrador = usuario.getNombre();
+                }
+                String gastoTotalStr = String.format("%.2f", gastoTotal);
+                txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
 
-                // Crear una instancia de Usuario
-                Usuario usuario = new Usuario(0, nombreUsuario, proyecto.getId());
+                /**
+                 * ELIMINAR GASTO
+                 */
+                lv_usuarios.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(Detalles_Proyectos.this);
+                        builder.setMessage("¿Quiere eliminar el usuario " + lista_usuarios_proyecto.get(i).getNombre() + "?")
+                                .setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        /**
+                                         * CÓDIGO DE ELIMINAR EL ELEMENTO
+                                         */
+                                        Usuarios proyectoService = retrofit.create(Usuarios.class);
+                                        Call<Void> llamada = proyectoService.borrarUsuario(lista_usuarios_proyecto.get(i).getId());
+                                        llamada.enqueue(new Callback<Void>() {
+                                            @Override
+                                            public void onResponse(Call<Void> call, Response<Void> response) {
+                                                Toast.makeText(Detalles_Proyectos.this, "Usuario borrado de la base de datos", Toast.LENGTH_SHORT).show();
+                                                lista_usuarios_proyecto.remove(i);
+                                                /**
+                                                 * Indico al adapter del listview de gastos que he alterado
+                                                 * la lista y debe refrescarse
+                                                 */
+                                                ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
 
-                crearUsuario(usuario);
+                                            }
+
+                                            @Override
+                                            public void onFailure(Call<Void> call, Throwable t) {
+                                                Toast.makeText(Detalles_Proyectos.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+
+                                    }
+                                })
+                                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        // Cancela la eliminación
+                                        dialog.dismiss();
+                                    }
+                                });
+                        // Muestra el diálogo
+                        builder.create().show();
+                        return true;
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<List<Usuario>> call, Throwable t) {
+
+                Log.e("API_REQUEST_FAILURE", "Error: " + t.getMessage());
+            }
+        });
+    }
+    private void mostrarDialogoAñadirUsuario() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Selecciona usuarios");
+
+        List<String> nombresUsuariosDisponibles = new ArrayList<>();
+        for (Usuario usuario : lista_usuarios) {
+            boolean usuarioEnProyecto = false;
+            for (Usuario usuarioProyecto : lista_usuarios_proyecto) {
+                if (usuario.getNombre().equals(usuarioProyecto.getNombre())) {
+                    usuarioEnProyecto = true;
+                    break;
+                }
+            }
+            if (!usuarioEnProyecto) {
+                nombresUsuariosDisponibles.add(usuario.getNombre());
+            }
+        }
+
+        // Convertir lista de nombres de usuario disponibles a arreglo
+        final String[] elementos = nombresUsuariosDisponibles.toArray(new String[0]);
+        final boolean[] seleccionados = new boolean[elementos.length];
+
+        builder.setMultiChoiceItems(elementos, seleccionados, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                // Actualiza el estado de selección del elemento en el arreglo
+                seleccionados[which] = isChecked;
             }
         });
 
-        // Mostrar el diálogo
+        builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Procesa los elementos seleccionados
+                for (int i = 0; i < elementos.length; i++) {
+                    if (seleccionados[i]) {
+                        for (Usuario usuario:lista_usuarios) {
+                            if (usuario.getNombre().equals(elementos[i])){
+                                lista_usuarios_proyecto.add(usuario);
+                            }
+                        }
+                        crearListViewUsuarios(proyecto.getId());
+                        ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss(); // Cierra el diálogo sin hacer nada
+            }
+        });
+
+        // Crea y muestra el diálogo
         AlertDialog dialog = builder.create();
         dialog.show();
-    }
-    private void crearUsuario(Usuario usuario){
-        Usuarios usuarioService = retrofit.create(Usuarios.class);
-        Call<Usuario> llamada = usuarioService.crearUsuario(usuario);
-        llamada.enqueue(new Callback<Usuario>() {
-            @Override
-            public void onResponse(Call<Usuario> call, Response<Usuario> response) {
-                /**
-                 * Dialogo que indica al usuario que se ha creado correctamente
-                 */
-                Toast.makeText(Detalles_Proyectos.this, "Usuario añadido", Toast.LENGTH_SHORT).show();
-                lista_usuarios_proyecto.add(response.body());
-                /**
-                 * CREAR ADAPTER USUARIOS, GENERAR LISTVIEW
-                 */
 
+    }
+    private void obtenerUsuarios(){
+        Usuarios usuariosService = retrofit.create(Usuarios.class);
+        Call<List<Usuario>> llamada = usuariosService.obtenerUsuarios();
+        llamada.enqueue(new Callback<List<Usuario>>() {
+            @Override
+            public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
+                lista_usuarios = response.body();
             }
 
-
             @Override
-            public void onFailure(Call<Usuario> call, Throwable t) {
-                Toast.makeText(Detalles_Proyectos.this, "El usuario no se ha añadido", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<List<Usuario>> call, Throwable t) {
 
+                Log.e("API_REQUEST_FAILURE", "Error: " + t.getMessage());
             }
         });
     }
@@ -234,7 +344,18 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 Toast.makeText(this, "Gasto creado correctamente", Toast.LENGTH_SHORT).show();
                 lista_gastos_proyecto.add((Gasto)data.getSerializableExtra("gastoCreado"));
                 ((CustomAdapter_gasto) lv_gastos.getAdapter()).notifyDataSetChanged();
+                ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
+
             }
         }
+    }
+    public void calcularGastoTotal(Proyecto proyecto){
+        /**
+         * CALCULO EL GASTO TOTAL, LUEGO SE LO TENGO QUE RESTAR AL GASTO DE CADA PARTICIPANTE
+         * Y MOSTRAR EL DEFICIT DE CADA UNO
+         */
+        String gastoTotalStr = String.format("%.2f", gastoTotal);
+        txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
+
     }
 }

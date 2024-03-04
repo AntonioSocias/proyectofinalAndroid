@@ -9,6 +9,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface Gastos {
@@ -20,6 +21,9 @@ public interface Gastos {
 
     @POST("gastos")
     Call<Gasto>crearGasto(@Body Gasto gasto );
+
+    @PUT("gastos")
+    Call<Gasto> editarGasto(@Path("id") int id, @Body Gasto gasto);
 
     @DELETE("gastos/{gasto_id}")
     Call<Void> borrarGasto(@Path("gasto_id") int gasto_id);

@@ -12,6 +12,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.proyecto_gastos.models.Proyecto;
+import com.example.proyecto_gastos.models.Usuario;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,10 +28,14 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
     Spinner spn_moneda;
 
     Retrofit retrofit;
+    String usuarioString;
+    static Usuario administrador;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_creacion_proyecto);
+
+        usuarioString = getIntent().getStringExtra("usuario");
         retrofit = new Retrofit.Builder()
                 .baseUrl(getString(R.string.url_domain))
                 .addConverterFactory(GsonConverterFactory.create())
@@ -40,14 +47,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         btn_aceptar = findViewById(R.id.btn_aceptar);
         btn_cancelar = findViewById(R.id.btn_cancelar);
 
-        /**
-         * CAMPOS DE TEXTOS
-         */
-
-        /**
-         * LISTA MONEDAS
-         */
-
+        administrador = recuperarAdministradorProyecto(usuarioString);
         //RECUPERO EL ArrayAdapter con el recurso
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
@@ -85,7 +85,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         /**
          * ME FALTARIA VER EL TEMA DEL ADMINISTRADOR -----------------------------------------
          */
-        int administrador =1;
+        int administrador = Form_Creacion_Proyecto.administrador.getId();
         /**
          * 1 -> EURO, 2 -> DOLAR, 3 -> YEN
          */
@@ -119,5 +119,27 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
             }
         });
 
+    }
+    private Usuario recuperarAdministradorProyecto(String usuarioString){
+        Usuarios usuarioService = retrofit.create(Usuarios.class);
+        Call<List<Usuario>> llamada = usuarioService.obtenerUsuarios();
+        final Usuario[] usuarioAdministrador = new Usuario[1];
+        llamada.enqueue(new Callback<List<Usuario>>() {
+            @Override
+            public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
+                List<Usuario> lista_usuarios = response.body();
+                for (Usuario usuario: lista_usuarios) {
+                    if (usuario.getNombre().equals(usuarioString)){
+                        usuarioAdministrador[0] = usuario;
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Usuario>> call, Throwable t) {
+
+            }
+        });
+        return usuarioAdministrador[0];
     }
 }

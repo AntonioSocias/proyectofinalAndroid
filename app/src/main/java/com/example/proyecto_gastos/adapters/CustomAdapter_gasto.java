@@ -51,10 +51,10 @@ public class CustomAdapter_gasto extends ArrayAdapter {
                 .baseUrl(mContext.getResources().getString(R.string.url_domain))//VOLVER A PONER QUE ACCEDA A STRINGS
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        final View vistaPersonalizada = inflater.inflate(R.layout.activity_customadapter_gastos, parent, false);
-        TextView textViewTitulo = vistaPersonalizada.findViewById(R.id.textViewTituloGasto);
+        final View vistaPersonalizada = inflater.inflate(R.layout.activity_customadapter_gasto, parent, false);
+        TextView textViewTitulo = vistaPersonalizada.findViewById(R.id.textViewNombreUsuario);
         TextView textViewPagado = vistaPersonalizada.findViewById(R.id.textViewPagadoGasto);
-        TextView textViewCantidad = vistaPersonalizada.findViewById(R.id.textViewCantidadGasto);
+        TextView textViewCantidad = vistaPersonalizada.findViewById(R.id.textViewGastoUsuario);
         TextView textViewFecha = vistaPersonalizada.findViewById(R.id.textViewFechaGasto);
 
         Gasto currentItem = listaGastos.get(position);

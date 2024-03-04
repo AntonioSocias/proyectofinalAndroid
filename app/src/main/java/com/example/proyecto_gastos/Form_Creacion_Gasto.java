@@ -36,6 +36,7 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
     List<Usuario> lista_usuarios;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_creacion_gasto);
         Proyecto proyecto = (Proyecto) getIntent().getSerializableExtra("proyecto");
@@ -52,55 +53,119 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
         btn_cancelar = findViewById(R.id.buttonCancelar);
 
 
+
         /**
          * OBTENGO LOS USUARIOS PERTENECIENTES AL PROYECTO
          * Y LOS METO EN EL LISTVIEW
          */
         obtenerUsariosProyecto(proyecto);
 
-        btn_aceptar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    String concepto = et_concepto.getText().toString();
-                    /**
-                     * CONVERSION CANTIDAD
-                     */
-                    String cantidadString = et_cantidad.getText().toString();
-                    Float cantidadFloat = null;
-                    cantidadFloat = Float.parseFloat(cantidadString);
-                    /**
-                     * CONVERSION FECHA ---------MIRAR DE USAR UN DATEPICKER
-                     */
-                    String fechaString = et_fecha.getText().toString();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        /**
+         * obtengo los datos en caso de que se haya venido a editar un gasto
+         */
+        Intent intent = getIntent();
+        Gasto gastoRecuperado = (Gasto) intent.getSerializableExtra("gasto");
+        if (gastoRecuperado!=null){
+            et_concepto.setText(gastoRecuperado.getTitulo());
+            et_cantidad.setText(String.valueOf(gastoRecuperado.getCantidad()));
+            et_fecha.setText(gastoRecuperado.getFechaFormateada());
+
+            /**
+             * COMPROBAR RECUPERAR EL PAGADOR Y PONERLO
+             * COMO SELECCIONADO EN EL SPINNER
+             */
+            //spn_pagador.setSelection(lista_usuarios.get(seleccion));
+
+            btn_aceptar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        String concepto = et_concepto.getText().toString();
+                        /**
+                         * CONVERSION CANTIDAD
+                         */
+                        String cantidadString = et_cantidad.getText().toString();
+                        Float cantidadFloat = null;
+                        cantidadFloat = Float.parseFloat(cantidadString);
+                        /**
+                         * CONVERSION FECHA ---------MIRAR DE USAR UN DATEPICKER
+                         */
+                        String fechaString = et_fecha.getText().toString();
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
 
-                    Date fechaDate = dateFormat.parse(fechaString);
+                        Date fechaDate = dateFormat.parse(fechaString);
 
-                    /**
-                     * MODIFICAR PAGADOR SPINNER
-                     */
-                    String pagadorNombre = spn_pagador.getSelectedItem().toString();
-                    int pagadorId = -1;
-                    for (Usuario usuario : lista_usuarios) {
-                        if (usuario.getNombre().equals(pagadorNombre)){
-                            pagadorId = usuario.getId();
+                        /**
+                         * MODIFICAR PAGADOR SPINNER
+                         */
+                        String pagadorNombre = spn_pagador.getSelectedItem().toString();
+                        int pagadorId = -1;
+                        for (Usuario usuario : lista_usuarios) {
+                            if (usuario.getNombre().equals(pagadorNombre)){
+                                pagadorId = usuario.getId();
+                            }
                         }
+
+                        Gasto gasto = new Gasto(1, concepto, pagadorId, cantidadFloat, fechaDate, proyecto.getId());
+                        crearGasto(gasto);
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-
-                    Gasto gasto = new Gasto(1, concepto, pagadorId, cantidadFloat, fechaDate, proyecto.getId());
-                    crearGasto(gasto);
-
-                } catch (ParseException e) {
-                    e.printStackTrace();
-
-
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-            }
-        });
+            });
+        }else{
+            btn_aceptar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        String concepto = et_concepto.getText().toString();
+                        /**
+                         * CONVERSION CANTIDAD
+                         */
+                        String cantidadString = et_cantidad.getText().toString();
+                        Float cantidadFloat = null;
+                        cantidadFloat = Float.parseFloat(cantidadString);
+                        /**
+                         * CONVERSION FECHA ---------MIRAR DE USAR UN DATEPICKER
+                         */
+                        String fechaString = et_fecha.getText().toString();
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+
+                        Date fechaDate = dateFormat.parse(fechaString);
+
+                        /**
+                         * MODIFICAR PAGADOR SPINNER
+                         */
+                        String pagadorNombre = spn_pagador.getSelectedItem().toString();
+                        int pagadorId = -1;
+                        for (Usuario usuario : lista_usuarios) {
+                            if (usuario.getNombre().equals(pagadorNombre)){
+                                pagadorId = usuario.getId();
+                            }
+                        }
+
+                        Gasto gasto = new Gasto(1, concepto, pagadorId, cantidadFloat, fechaDate, proyecto.getId());
+                        crearGasto(gasto);
+
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+
     }
 
     public void crearGasto(Gasto gasto) {
@@ -113,6 +178,30 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
                 resultIntent.putExtra("gastoCreado", gasto); // Suponiendo que 'gasto' es el objeto Gasto creado
                 setResult(Form_Creacion_Gasto.RESULT_OK, resultIntent);
                 finish();
+            }
+            @Override
+            public void onFailure(Call<Gasto> call, Throwable t) {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
+    }
+    public void editarGasto(Gasto gasto) {
+        Gastos gastosService = retrofit.create(Gastos.class);
+        Call<Gasto> llamada = gastosService.editarGasto(gasto.getId(), gasto);
+        llamada.enqueue(new Callback<Gasto>() {
+            @Override
+            public void onResponse(Call<Gasto> call, Response<Gasto> response) {
+                if (response.isSuccessful()) {
+                    Gasto gastoActualizado = response.body();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("gastoActualizado", gastoActualizado);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                } else {
+                    setResult(RESULT_CANCELED);
+                    finish();
+                }
             }
             @Override
             public void onFailure(Call<Gasto> call, Throwable t) {
