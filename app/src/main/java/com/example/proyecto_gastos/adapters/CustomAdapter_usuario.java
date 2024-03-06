@@ -76,6 +76,9 @@ public class CustomAdapter_usuario extends ArrayAdapter {
                             gastoCliente=calcularGastosTotalUsuarios(currentItem);
                         }
                     }
+                    if (gastoCliente==null){
+                        gastoCliente=0f;
+                    }
                     textViewGasto.setText(String.format("%.2f", gastoCliente) + mContext.getString(R.string.moneda));
                 }
 

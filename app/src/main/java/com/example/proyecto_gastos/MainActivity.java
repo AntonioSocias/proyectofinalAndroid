@@ -16,7 +16,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.proyecto_gastos.adapters.CustomAdapter_gasto;
+import com.example.proyecto_gastos.adapters.CustomAdapter_usuario;
 import com.example.proyecto_gastos.login.LoginActivity;
+import com.example.proyecto_gastos.models.Gasto;
 import com.example.proyecto_gastos.models.Proyecto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
 import com.example.proyecto_gastos.models.Usuario;
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     static List<Proyecto> lista_proyectos;
     Retrofit retrofit;
     String usuarioString;
+    private static final int REQUEST_CODE_ACTIVITY_B = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                         //PASO EL OBJETO
                         intent.putExtra("proyecto", proyecto);
                         //PRUEBA DNIADWI
-                        startActivity(intent);
+                        startActivityForResult(intent, 1);
                     }
                 });
                 /**
@@ -179,4 +183,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_ACTIVITY_B){
+            if (resultCode == RESULT_OK) {
+                /**
+                 * RECUPERO EL PROYECTO MODIFICADO SIMPLEMENTE POR SI ME HICIERA FALTA MÁS ADELANTE
+                 */
+                Proyecto proyectoModificado = (Proyecto) data.getSerializableExtra("proyectoModificado");
+                /**
+                 * RE EJECUTO EL MÉTODO PARA REFRESCAR EL LISTVIEW
+                 */
+                crearListView();
+            }
+        }
+    }
+
 }

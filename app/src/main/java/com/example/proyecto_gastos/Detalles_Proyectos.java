@@ -1,5 +1,6 @@
 package com.example.proyecto_gastos;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedDispatcher;
 
 import com.example.proyecto_gastos.adapters.CustomAdapter_gasto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
@@ -367,4 +369,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent();
+        intent.putExtra("proyectoModificado", proyecto);
+        setResult(Detalles_Proyectos.RESULT_OK, intent);
+        finish();
+        super.onBackPressed();
+    }
 }
