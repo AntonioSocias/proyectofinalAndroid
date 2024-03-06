@@ -1,5 +1,7 @@
 package com.example.proyecto_gastos.adapters;
 
+import static com.example.proyecto_gastos.Detalles_Proyectos.lista_gastos_proyecto;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.proyecto_gastos.Detalles_Proyectos;
 import com.example.proyecto_gastos.Proyectos;
 import com.example.proyecto_gastos.R;
 import com.example.proyecto_gastos.models.Gasto;
@@ -64,17 +67,17 @@ public class CustomAdapter_usuario extends ArrayAdapter {
              * Obtengo el nombre del usuario
              */
             Proyectos proyectosService = retrofit.create(Proyectos.class);
-            Call<List<Gasto>> llamada = proyectosService.obtenerGastosProyecto(listaUsuarios.get(0).getProyecto());
+            Call<List<Gasto>> llamada = proyectosService.obtenerGastosProyecto(currentItem.getProyecto());
             llamada.enqueue(new Callback<List<Gasto>>() {
                 @Override
                 public void onResponse(Call<List<Gasto>> call, Response<List<Gasto>> response) {
-                    gastoCliente=0f;
                     for (Gasto gasto : response.body()) {
                         if (gasto.getPagador() == currentItem.getId()) {
-                            gastoCliente = gasto.getCantidad();
+                            gastoCliente=calcularGastosTotalUsuarios(currentItem);
                         }
                     }
-                    textViewGasto.setText(String.format("%.2f", gastoCliente) + mContext.getString(R.string.moneda));                }
+                    textViewGasto.setText(String.format("%.2f", gastoCliente) + mContext.getString(R.string.moneda));
+                }
 
                 @Override
                 public void onFailure(Call<List<Gasto>> call, Throwable t) {
@@ -84,5 +87,14 @@ public class CustomAdapter_usuario extends ArrayAdapter {
         }
 
         return vistaPersonalizada;
+    }
+    public float calcularGastosTotalUsuarios(Usuario usuario){
+        float acumGasto=0;
+        for (Gasto gasto: Detalles_Proyectos.lista_gastos_proyecto) {
+            if (gasto.getPagador()==usuario.getId()){
+                acumGasto+=gasto.getCantidad();
+            }
+        }
+        return acumGasto;
     }
 }

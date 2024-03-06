@@ -112,8 +112,6 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
 
                     } catch (ParseException e) {
                         e.printStackTrace();
-
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -161,6 +159,12 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                }
+            });
+            btn_cancelar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    finish();
                 }
             });
         }

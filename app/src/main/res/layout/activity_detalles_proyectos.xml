@@ -59,7 +59,7 @@
                 android:id="@+id/textViewAdministrador"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="right"
+                android:layout_marginLeft="10dp"
                 android:text="TextView"
                 android:textSize="24sp" />
 
@@ -86,7 +86,7 @@
                 android:id="@+id/textViewGastoTotal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="right"
+                android:layout_marginLeft="10dp"
                 android:text="TextView"
                 android:textSize="24sp" />
 

@@ -44,7 +44,7 @@ public class Proyecto implements Serializable {
         return total_gastos;
     }
 
-    public void setTotal_gastos(int total_gastos) {
+    public void setTotal_gastos(float total_gastos) {
         this.total_gastos = total_gastos;
     }
 

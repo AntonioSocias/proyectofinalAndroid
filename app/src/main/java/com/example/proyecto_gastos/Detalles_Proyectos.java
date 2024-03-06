@@ -41,7 +41,7 @@ public class Detalles_Proyectos extends AppCompatActivity {
     Proyecto proyecto;
     FloatingActionButton btn_crearGasto, btn_crearParticipante;
     Retrofit retrofit;
-    static List<Gasto> lista_gastos_proyecto;
+    public static List<Gasto> lista_gastos_proyecto;
     static List<Usuario> lista_usuarios_proyecto, lista_usuarios;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +60,6 @@ public class Detalles_Proyectos extends AppCompatActivity {
         btn_crearGasto = findViewById(R.id.btn_crearGasto);
         btn_crearParticipante = findViewById(R.id.btn_crearParticipante);
         txTitulo.setText(proyecto.getTitulo());
-
         crearListViewGastos(proyecto.getId());
         crearListViewUsuarios(proyecto.getId());
         obtenerUsuarios();
@@ -98,35 +97,25 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 lv_gastos = findViewById(R.id.lv_listado_gastos);
                 //COMENTO CUSTOR ADAPTER
                 lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, lista_gastos_proyecto));
-                /**
-                 * OBTENGO EL GASTO TOTAL Y LO MUESTRO POR EL TEXTVIEW
-                 */
+
+                // Reinicia gastoTotal a cero antes de calcular el total
+                gastoTotal = 0f;
                 for (Gasto gasto: lista_gastos_proyecto) {
                     gastoTotal += gasto.getCantidad();
                 }
-                String gastoTotalStr = String.format("%.2f", gastoTotal);
-                txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
+                mostrarGastoTotal(proyecto);
 
-                /**
-                 * ACCIÓN DE LOS GASTOS
-                 */
+                // Resto los gastos de cada participante y muestro el déficit
+
                 lv_gastos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                        /** CÓDIGO A DEPURAR Y GENERAR ACCIÓN DE ELEMENTOS
-                         * */
                         Intent intent = new Intent(Detalles_Proyectos.this, Form_Creacion_Gasto.class);
-                        //CREO UN CLIENTE CON EL ITEM DEL ADAPTER EN LA POSICIÓN
                         Gasto gasto = (Gasto) lv_gastos.getAdapter().getItem(position);
-                        //PASO EL OBJETO
                         intent.putExtra("gasto", gasto);
-                        //PRUEBA DNIADWI
                         startActivityForResult(intent, 1);
                     }
                 });
-                /**
-                 * ELIMINAR GASTO
-                 */
                 lv_gastos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
                     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -134,22 +123,17 @@ public class Detalles_Proyectos extends AppCompatActivity {
                         builder.setMessage("¿Quiere eliminar el gasto " + lista_gastos_proyecto.get(i).getTitulo() + "?")
                                 .setPositiveButton("Eliminar", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        /**
-                                         * CÓDIGO DE ELIMINAR EL ELEMENTO
-                                         */
                                         Gastos proyectoService = retrofit.create(Gastos.class);
                                         Call<Void> llamada = proyectoService.borrarGasto(lista_gastos_proyecto.get(i).getId());
                                         llamada.enqueue(new Callback<Void>() {
                                             @Override
                                             public void onResponse(Call<Void> call, Response<Void> response) {
                                                 Toast.makeText(Detalles_Proyectos.this, "Gasto borrado de la base de datos", Toast.LENGTH_SHORT).show();
+                                                proyecto.setTotal_gastos(lista_gastos_proyecto.get(i).getCantidad());
+                                                mostrarGastoTotal(proyecto);
                                                 lista_gastos_proyecto.remove(i);
-                                                /**
-                                                 * Indico al adapter del listview de gastos que he alterado
-                                                 * la lista y debe refrescarse
-                                                 */
                                                 ((CustomAdapter_gasto) lv_gastos.getAdapter()).notifyDataSetChanged();
-
+                                                ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
                                             }
 
                                             @Override
@@ -157,16 +141,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
                                                 Toast.makeText(Detalles_Proyectos.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
                                             }
                                         });
-
                                     }
                                 })
                                 .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        // Cancela la eliminación
                                         dialog.dismiss();
                                     }
                                 });
-                        // Muestra el diálogo
                         builder.create().show();
                         return true;
                     }
@@ -175,11 +156,11 @@ public class Detalles_Proyectos extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Gasto>> call, Throwable t) {
-
                 Log.e("API_REQUEST_FAILURE", "Error: " + t.getMessage());
             }
         });
     }
+
     private void crearListViewUsuarios(int id_proyecto){
         Proyectos proyectoService = retrofit.create(Proyectos.class);
         Call<List<Usuario>> llamada = proyectoService.obtenerUsuariosProyecto(id_proyecto);
@@ -190,17 +171,10 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 lv_usuarios = findViewById(R.id.lv_listado_participantes);
                 //COMENTO CUSTOR ADAPTER
                 lv_usuarios.setAdapter(new CustomAdapter_usuario(Detalles_Proyectos.this, lista_usuarios_proyecto));
-                /**
-                 * OBTENGO EL GASTO TOTAL Y LO MUESTRO POR EL TEXTVIEW
-                 */
-                for (Usuario usuario: lista_usuarios_proyecto) {
-                    administrador = usuario.getNombre();
-                }
-                String gastoTotalStr = String.format("%.2f", gastoTotal);
-                txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
+
 
                 /**
-                 * ELIMINAR GASTO
+                 * ELIMINAR USUARIO
                  */
                 lv_usuarios.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
@@ -323,6 +297,15 @@ public class Detalles_Proyectos extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
                 lista_usuarios = response.body();
+                /**
+                 * ASIGNACION DE ADMINISTRADOR
+                 */
+                for (Usuario usuario : lista_usuarios) {
+                    if (usuario.getId() == proyecto.getId()){
+                        administrador = usuario.getNombre();
+                    }
+                }
+                txtAdministrador.setText("Administrador: " + administrador);
             }
 
             @Override
@@ -344,12 +327,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 Toast.makeText(this, "Gasto creado correctamente", Toast.LENGTH_SHORT).show();
                 lista_gastos_proyecto.add((Gasto)data.getSerializableExtra("gastoCreado"));
                 ((CustomAdapter_gasto) lv_gastos.getAdapter()).notifyDataSetChanged();
+                mostrarGastoTotal(proyecto);
                 ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
 
             }
         }
     }
-    public void calcularGastoTotal(Proyecto proyecto){
+    public void mostrarGastoTotal(Proyecto proyecto){
         /**
          * CALCULO EL GASTO TOTAL, LUEGO SE LO TENGO QUE RESTAR AL GASTO DE CADA PARTICIPANTE
          * Y MOSTRAR EL DEFICIT DE CADA UNO
