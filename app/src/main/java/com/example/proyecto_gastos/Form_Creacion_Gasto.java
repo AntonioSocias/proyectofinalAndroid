@@ -234,7 +234,7 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Usuario>> call, Throwable t) {
-                Toast.makeText(Form_Creacion_Gasto.this, "NO SE HA PODIDO CREAR EL GASTO", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Form_Creacion_Gasto.this, "No se ha localizado usuarios", Toast.LENGTH_SHORT).show();
             }
         });
     }

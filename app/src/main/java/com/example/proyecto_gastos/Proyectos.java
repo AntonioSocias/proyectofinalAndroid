@@ -11,6 +11,7 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface Proyectos {
@@ -23,6 +24,9 @@ public interface Proyectos {
 
     @GET("proyectos/{proyecto_id}")
     Call<Proyecto> obtenerProyecto(@Path("proyecto_id") int proyecto_id);
+
+    @PUT("proyectos/{proyecto_id}")
+    Call<Proyecto> actualizarProyecto(@Path("proyecto_id") int proyecto_id, @Body Proyecto proyecto);
 
     @POST("proyectos")
     Call<Proyecto>crearProyecto(@Body Proyecto proyecto );

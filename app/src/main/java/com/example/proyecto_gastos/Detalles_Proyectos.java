@@ -52,14 +52,17 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 .baseUrl(getResources().getString(R.string.url_domain))//VOLVER A PONER QUE ACCEDA A STRINGS
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        gastoTotal=0f;
+
         txTitulo = findViewById(R.id.textView2);
         txtGastoTotal = findViewById(R.id.textViewGastoTotal);
         txtAdministrador = findViewById(R.id.textViewAdministrador);
         lv_gastos = findViewById(R.id.lv_listado_gastos);
         btn_crearGasto = findViewById(R.id.btn_crearGasto);
         btn_crearParticipante = findViewById(R.id.btn_crearParticipante);
+
         txTitulo.setText(proyecto.getTitulo());
+        gastoTotal= proyecto.getTotal_gastos();
+
         crearListViewGastos(proyecto.getId());
         crearListViewUsuarios(proyecto.getId());
         obtenerUsuarios();
@@ -98,12 +101,16 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 //COMENTO CUSTOR ADAPTER
                 lv_gastos.setAdapter(new CustomAdapter_gasto(Detalles_Proyectos.this, lista_gastos_proyecto));
 
-                // Reinicia gastoTotal a cero antes de calcular el total
-                gastoTotal = 0f;
+                /** YA LO HE ASIGNADO EL VALOR DE ORIGEN, SOLO QUEDA MOFICAR
                 for (Gasto gasto: lista_gastos_proyecto) {
                     gastoTotal += gasto.getCantidad();
                 }
-                mostrarGastoTotal(proyecto);
+                 */
+                /**
+                 * MUESTRO EL VALOR A MANO
+                 */
+                String gastoTotalStr = String.format("%.2f", gastoTotal);
+                txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
 
                 // Resto los gastos de cada participante y muestro el déficit
 
@@ -128,17 +135,14 @@ public class Detalles_Proyectos extends AppCompatActivity {
                                         llamada.enqueue(new Callback<Void>() {
                                             @Override
                                             public void onResponse(Call<Void> call, Response<Void> response) {
-                                                Toast.makeText(Detalles_Proyectos.this, "Gasto borrado de la base de datos", Toast.LENGTH_SHORT).show();
-                                                proyecto.setTotal_gastos(lista_gastos_proyecto.get(i).getCantidad());
-                                                mostrarGastoTotal(proyecto);
                                                 lista_gastos_proyecto.remove(i);
+                                                actualizarGastoTotal();
                                                 ((CustomAdapter_gasto) lv_gastos.getAdapter()).notifyDataSetChanged();
                                                 ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
                                             }
 
                                             @Override
                                             public void onFailure(Call<Void> call, Throwable t) {
-                                                Toast.makeText(Detalles_Proyectos.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
                                             }
                                         });
                                     }
@@ -171,7 +175,6 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 lv_usuarios = findViewById(R.id.lv_listado_participantes);
                 //COMENTO CUSTOR ADAPTER
                 lv_usuarios.setAdapter(new CustomAdapter_usuario(Detalles_Proyectos.this, lista_usuarios_proyecto));
-
 
                 /**
                  * ELIMINAR USUARIO
@@ -327,19 +330,41 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 Toast.makeText(this, "Gasto creado correctamente", Toast.LENGTH_SHORT).show();
                 lista_gastos_proyecto.add((Gasto)data.getSerializableExtra("gastoCreado"));
                 ((CustomAdapter_gasto) lv_gastos.getAdapter()).notifyDataSetChanged();
-                mostrarGastoTotal(proyecto);
+                actualizarGastoTotal();
                 ((CustomAdapter_usuario) lv_usuarios.getAdapter()).notifyDataSetChanged();
-
             }
         }
     }
-    public void mostrarGastoTotal(Proyecto proyecto){
+    public void actualizarGastoTotal(){
         /**
          * CALCULO EL GASTO TOTAL, LUEGO SE LO TENGO QUE RESTAR AL GASTO DE CADA PARTICIPANTE
          * Y MOSTRAR EL DEFICIT DE CADA UNO
          */
-        String gastoTotalStr = String.format("%.2f", gastoTotal);
+        Float acum=0f;
+        for (Gasto gasto : lista_gastos_proyecto) {
+            acum += gasto.getCantidad();
+        }
+        String gastoTotalStr = String.format("%.2f", acum);
+
         txtGastoTotal.setText("Total: " + gastoTotalStr + getResources().getString(R.string.moneda));
 
+        /**
+         * MODIFICAR PROYECTO BD
+         */
+        proyecto.setTotal_gastos(acum);
+
+        Proyectos proyectoService = retrofit.create(Proyectos.class);
+        Call<Proyecto> call = proyectoService.actualizarProyecto(proyecto.getId(), proyecto);
+        call.enqueue(new Callback<Proyecto>() {
+            @Override
+            public void onResponse(Call<Proyecto> call, Response<Proyecto> response) {
+                Toast.makeText(Detalles_Proyectos.this, "Se ha actualizado la BD", Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onFailure(Call<Proyecto> call, Throwable t) {
+                Toast.makeText(Detalles_Proyectos.this, "No se ha actualizado en la BD", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 }
