@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     static List<Proyecto> lista_proyectos;
     Retrofit retrofit;
     String usuarioString;
+    Usuario usuarioIdentificado;
     private static final int REQUEST_CODE_ACTIVITY_B = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,13 +54,12 @@ public class MainActivity extends AppCompatActivity {
         btn_logOut = findViewById(R.id.btn_logOut);
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+
         usuarioString = sharedPreferences.getString("usuario", "");
 
         if (usuarioString.isEmpty()) {
-            // No se encontró ningún usuario en SharedPreferences
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
-            //Ajusto la cabecera para que me dé la bienvenida por primera vez
         }else{
             txtCabecera.setText("Bienvenido " + usuarioString);
         }
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
          * LLAMO A MÉTODO PARA RELLENAR EL LISTVIEW
          */
         crearListView();
-
+        recuperarUsuarioIdentificado(usuarioString);
         /**
          * FLOATIN BUTTON
          */
@@ -141,26 +141,29 @@ public class MainActivity extends AppCompatActivity {
                                         /**
                                          * CÓDIGO DE ELIMINAR EL ELEMENTO
                                          */
-                                        Call<Void> llamada = proyectoService.borrarProyecto(lista_proyectos.get(i).getId());
-                                        llamada.enqueue(new Callback<Void>() {
-                                            @Override
-                                            public void onResponse(Call<Void> call, Response<Void> response) {
-                                                Toast.makeText(MainActivity.this, "Proyecto borrado de la base de datos", Toast.LENGTH_SHORT).show();
-                                                lista_proyectos.remove(i);
-                                                /**
-                                                 * Indico al adapter del listview de proyectos que he alterado
-                                                 * la lista y debe refrescarse
-                                                 */
-                                                ((CustomAdapter_proyecto) lv_proyectos.getAdapter()).notifyDataSetChanged();
+                                        if (usuarioIdentificado.getId()!=lista_proyectos.get(i).getAdministrador()){
+                                            Toast.makeText(MainActivity.this, "No eres el administrador del proyecto", Toast.LENGTH_SHORT).show();
+                                        }else{
+                                            Call<Void> llamada = proyectoService.borrarProyecto(lista_proyectos.get(i).getId());
+                                            llamada.enqueue(new Callback<Void>() {
+                                                @Override
+                                                public void onResponse(Call<Void> call, Response<Void> response) {
+                                                    Toast.makeText(MainActivity.this, "Proyecto borrado de la base de datos", Toast.LENGTH_SHORT).show();
+                                                    lista_proyectos.remove(i);
+                                                    /**
+                                                     * Indico al adapter del listview de proyectos que he alterado
+                                                     * la lista y debe refrescarse
+                                                     */
+                                                    ((CustomAdapter_proyecto) lv_proyectos.getAdapter()).notifyDataSetChanged();
 
-                                            }
+                                                }
 
-                                            @Override
-                                            public void onFailure(Call<Void> call, Throwable t) {
-                                                Toast.makeText(MainActivity.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-
+                                                @Override
+                                                public void onFailure(Call<Void> call, Throwable t) {
+                                                    Toast.makeText(MainActivity.this, "No se ha podido borrar de la base de datos", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }
                                     }
                                 })
                                 .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -198,6 +201,26 @@ public class MainActivity extends AppCompatActivity {
                 crearListView();
             }
         }
+    }
+    private void recuperarUsuarioIdentificado(String nombreUsuario){
+        Usuarios usuariosService = retrofit.create(Usuarios.class);
+        Call<List<Usuario>> llamada = usuariosService.obtenerUsuarios();
+        llamada.enqueue(new Callback<List<Usuario>>() {
+            @Override
+            public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
+                List<Usuario> listaUsuarios = response.body();
+                for (Usuario usuario : listaUsuarios) {
+                    if (usuario.getNombre().equals(nombreUsuario)) {
+                        usuarioIdentificado = usuario;
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Usuario>> call, Throwable t) {
+
+            }
+        });
     }
 
 }

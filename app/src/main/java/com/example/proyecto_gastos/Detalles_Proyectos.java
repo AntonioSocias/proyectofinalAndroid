@@ -1,12 +1,13 @@
 package com.example.proyecto_gastos;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,10 +16,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedDispatcher;
 
 import com.example.proyecto_gastos.adapters.CustomAdapter_gasto;
-import com.example.proyecto_gastos.adapters.CustomAdapter_proyecto;
 import com.example.proyecto_gastos.adapters.CustomAdapter_usuario;
 import com.example.proyecto_gastos.models.Gasto;
 import com.example.proyecto_gastos.models.Proyecto;
@@ -26,7 +25,6 @@ import com.example.proyecto_gastos.models.Usuario;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -36,9 +34,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Detalles_Proyectos extends AppCompatActivity {
-    TextView txTitulo, txtGastoTotal, txtAdministrador;
+    TextView txtTitulo, txtGastoTotal, txtAdministrador;
     ListView lv_gastos, lv_usuarios;
-    String administrador;
+    String nombreUsuarioLogeado;
+    Usuario usuarioLogeado, usuarioAdministrador;
     Float gastoTotal;
     Proyecto proyecto;
     FloatingActionButton btn_crearGasto, btn_crearParticipante;
@@ -55,19 +54,43 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        txTitulo = findViewById(R.id.textView2);
+        txtTitulo = findViewById(R.id.textView2);
         txtGastoTotal = findViewById(R.id.textViewGastoTotal);
         txtAdministrador = findViewById(R.id.textViewAdministrador);
         lv_gastos = findViewById(R.id.lv_listado_gastos);
         btn_crearGasto = findViewById(R.id.btn_crearGasto);
         btn_crearParticipante = findViewById(R.id.btn_crearParticipante);
 
-        txTitulo.setText(proyecto.getTitulo());
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        /**
+         * RECUPERO EL USUARIOlOGEADO
+         */
+        nombreUsuarioLogeado = sharedPreferences.getString("usuario", "");
+
+        txtTitulo.setText(proyecto.getTitulo());
         gastoTotal= proyecto.getTotal_gastos();
 
+        /**
+         * LLAMADA A MÉTODOS
+         */
         crearListViewGastos(proyecto.getId());
         crearListViewUsuarios(proyecto.getId());
         obtenerUsuarios();
+
+
+        txtTitulo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (usuarioLogeado.getId()!= usuarioAdministrador.getId()){
+                    Toast.makeText(Detalles_Proyectos.this, "No eres el administrador", Toast.LENGTH_SHORT).show();
+                }else{
+                    mostrarDialogoEditarNombreProyecto();
+                }
+            }
+        });
+
 
         /**
          * BOTON PARA CREAR UN NUEVO GASTO
@@ -80,6 +103,10 @@ public class Detalles_Proyectos extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
+
+        /**
+         * BOTON PARA AÑADIR UN PARTICIPANTE
+         */
         btn_crearParticipante.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -242,6 +269,13 @@ public class Detalles_Proyectos extends AppCompatActivity {
         List<String> nombresUsuariosDisponibles = new ArrayList<>();
         for (Usuario usuario : lista_usuarios) {
             boolean usuarioEnProyecto = false;
+            /**
+             * Si el administrador no está en la lista lo añado
+             */
+            if (!lista_usuarios_proyecto.contains(usuarioAdministrador)){
+                lista_usuarios_proyecto.add(usuarioAdministrador);
+            }
+
             for (Usuario usuarioProyecto : lista_usuarios_proyecto) {
                 if (usuario.getNombre().equals(usuarioProyecto.getNombre())) {
                     usuarioEnProyecto = true;
@@ -295,6 +329,47 @@ public class Detalles_Proyectos extends AppCompatActivity {
         dialog.show();
 
     }
+    private void mostrarDialogoEditarNombreProyecto() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Editar texto");
+
+        final EditText editText = new EditText(this);
+        editText.setText(txtTitulo.getText()); // Asignar el texto actual al EditText
+        builder.setView(editText);
+
+        builder.setPositiveButton("Guardar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String nuevoTexto = editText.getText().toString();
+                txtTitulo.setText(nuevoTexto);
+                proyecto.setTitulo(nuevoTexto);
+                
+                Proyectos proyectoService = retrofit.create(Proyectos.class);
+                Call<Proyecto> call = proyectoService.actualizarProyecto(proyecto.getId(), proyecto);
+                call.enqueue(new Callback<Proyecto>() {
+                    @Override
+                    public void onResponse(Call<Proyecto> call, Response<Proyecto> response) {
+                        Toast.makeText(Detalles_Proyectos.this, "Editado en la BD", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<Proyecto> call, Throwable t) {
+
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        // Mostrar el diálogo
+        builder.create().show();
+    }
     private void obtenerUsuarios(){
         Usuarios usuariosService = retrofit.create(Usuarios.class);
         Call<List<Usuario>> llamada = usuariosService.obtenerUsuarios();
@@ -306,11 +381,14 @@ public class Detalles_Proyectos extends AppCompatActivity {
                  * ASIGNACION DE ADMINISTRADOR
                  */
                 for (Usuario usuario : lista_usuarios) {
-                    if (usuario.getId() == proyecto.getId()){
-                        administrador = usuario.getNombre();
+                    if (usuario.getNombre().equals(nombreUsuarioLogeado)){
+                        usuarioLogeado = usuario;
+                    }
+                    if (usuario.getId() == proyecto.getAdministrador()){
+                        usuarioAdministrador = usuario;
                     }
                 }
-                txtAdministrador.setText("Administrador: " + administrador);
+                txtAdministrador.setText("Administrador: " + usuarioAdministrador.getNombre());
             }
 
             @Override
@@ -371,7 +449,6 @@ public class Detalles_Proyectos extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-
         Intent intent = new Intent();
         intent.putExtra("proyectoModificado", proyecto);
         setResult(Detalles_Proyectos.RESULT_OK, intent);

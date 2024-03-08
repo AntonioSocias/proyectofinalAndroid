@@ -29,7 +29,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
 
     Retrofit retrofit;
     String usuarioString;
-    static Usuario administrador;
+    int id_administrador;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +47,8 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         btn_aceptar = findViewById(R.id.btn_aceptar);
         btn_cancelar = findViewById(R.id.btn_cancelar);
 
-        administrador = recuperarAdministradorProyecto(usuarioString);
+        recuperarIdAdministradorProyecto(usuarioString);
+
         //RECUPERO EL ArrayAdapter con el recurso
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 this,
@@ -85,7 +86,7 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
         /**
          * ME FALTARIA VER EL TEMA DEL ADMINISTRADOR -----------------------------------------
          */
-        int administrador = Form_Creacion_Proyecto.administrador.getId();
+        int administrador = id_administrador;
         /**
          * 1 -> EURO, 2 -> DOLAR, 3 -> YEN
          */
@@ -118,28 +119,25 @@ public class Form_Creacion_Proyecto extends AppCompatActivity {
 
             }
         });
-
     }
-    private Usuario recuperarAdministradorProyecto(String usuarioString){
+    private void recuperarIdAdministradorProyecto(String usuarioString){
         Usuarios usuarioService = retrofit.create(Usuarios.class);
         Call<List<Usuario>> llamada = usuarioService.obtenerUsuarios();
-        final Usuario[] usuarioAdministrador = new Usuario[1];
         llamada.enqueue(new Callback<List<Usuario>>() {
             @Override
             public void onResponse(Call<List<Usuario>> call, Response<List<Usuario>> response) {
                 List<Usuario> lista_usuarios = response.body();
+
                 for (Usuario usuario: lista_usuarios) {
                     if (usuario.getNombre().equals(usuarioString)){
-                        usuarioAdministrador[0] = usuario;
+                        id_administrador = usuario.getId();
                     }
                 }
             }
-
             @Override
             public void onFailure(Call<List<Usuario>> call, Throwable t) {
-
+                Toast.makeText(Form_Creacion_Proyecto.this, "cagaste", Toast.LENGTH_SHORT).show();
             }
         });
-        return usuarioAdministrador[0];
     }
 }

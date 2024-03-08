@@ -18,7 +18,7 @@ public interface Usuarios {
     @GET("usuarios/{usuario_id}")
     Call<Usuario> obtenerUsuario(@Path("usuario_id") int usuario_id);
 
-    @POST("usuario")
+    @POST("usuarios")
     Call<Usuario>crearUsuario(@Body Usuario usuario );
 
     @DELETE("usuarios/{usuario_id}")

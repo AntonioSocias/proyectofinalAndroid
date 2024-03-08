@@ -3,6 +3,7 @@ package com.example.proyecto_gastos.adapters;
 import static com.example.proyecto_gastos.Detalles_Proyectos.lista_gastos_proyecto;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class CustomAdapter_usuario extends ArrayAdapter {
     List<Usuario> listaUsuarios;
-    Float gastoCliente;
+    Float gastoCliente, gastoTotal;
     //CONTEXTO PARA PODE USAR getString()
     private Context mContext;
     public CustomAdapter_usuario(@NonNull Context context, List<Usuario> lista) {
@@ -60,7 +61,6 @@ public class CustomAdapter_usuario extends ArrayAdapter {
         TextView textViewGasto = vistaPersonalizada.findViewById(R.id.textViewGastoUsuario);
 
         Usuario currentItem = listaUsuarios.get(position);
-
         if (currentItem != null){
             textViewNombre.setText(currentItem.getNombre());
             /**
@@ -71,15 +71,32 @@ public class CustomAdapter_usuario extends ArrayAdapter {
             llamada.enqueue(new Callback<List<Gasto>>() {
                 @Override
                 public void onResponse(Call<List<Gasto>> call, Response<List<Gasto>> response) {
+                    gastoTotal=0f;
+                    boolean HaPagado=false;
                     for (Gasto gasto : response.body()) {
                         if (gasto.getPagador() == currentItem.getId()) {
                             gastoCliente=calcularGastosTotalUsuarios(currentItem);
+                            HaPagado=true;
                         }
+                        gastoTotal += gasto.getCantidad();
                     }
-                    if (gastoCliente==null){
+                    if (gastoCliente==null || !HaPagado){
                         gastoCliente=0f;
                     }
-                    textViewGasto.setText(String.format("%.2f", gastoCliente) + mContext.getString(R.string.moneda));
+                    /**
+                     * AQUI DEBO RECUPERAR EL GASTO TOTAL, CALCULAR LA CANTIDAD A PAGAR POR
+                     * PARTICIPANTE Y RESTAR (+ -> SUPERHABIT, - -> DEFICIT)
+                     */
+                    int contParticipantes = listaUsuarios.size();
+                    float porcentajePagar = 1f/contParticipantes;
+                    float cantidadPagarParticipante = porcentajePagar*gastoTotal;
+                    float resultado = gastoCliente-cantidadPagarParticipante;
+                    if (resultado<0){
+                        textViewGasto.setTextColor(Color.RED);
+                    }else{
+                        textViewGasto.setTextColor(Color.WHITE);
+                    }
+                    textViewGasto.setText(String.format("%.2f", resultado) + mContext.getString(R.string.moneda));
                 }
 
                 @Override

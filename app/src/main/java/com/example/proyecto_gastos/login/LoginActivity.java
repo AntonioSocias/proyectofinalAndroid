@@ -91,7 +91,8 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 Boolean valido = false;
                 for (Usuario usuario: lista_usuarios) {
-                    if (usuario.getNombre().equals(txt_nombre.getText().toString())){
+                    if (usuario.getNombre().equals(txt_nombre.getText().toString())
+                            && usuario.getPassword().equals(txt_contra.getText().toString())){
                         valido=true;
                     }
                 }
@@ -107,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                 }else{
-                    txt_aviso.setText("El usuario no existe");
+                    txt_aviso.setText("Credenciales no válidas");
                 }
             }
         });
@@ -128,16 +129,29 @@ public class LoginActivity extends AppCompatActivity {
                     /**
                      * no existe asi que puedo crearlo
                      */
-                    Usuario usuarioPrueba = new Usuario(
+                    Usuario usuarioNuevo = new Usuario(
                             0, txt_nombre.getText().toString(),
                             txt_contra.getText().toString(),0);
 
-                    String usuarioString = usuarioPrueba.getNombre();
+                    Usuarios usuariosService = retrofit.create(Usuarios.class);
+                    Call<Usuario> llamada = usuariosService.crearUsuario(usuarioNuevo);
+                    llamada.enqueue(new Callback<Usuario>() {
+                        @Override
+                        public void onResponse(Call<Usuario> call, Response<Usuario> response) {
+                            Toast.makeText(LoginActivity.this, "Usuario subido a BD", Toast.LENGTH_SHORT).show();
+                            String usuarioString = usuarioNuevo.getNombre();
 
-                    editor.putString("usuario", usuarioString);
-                    editor.apply();
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
+                            editor.putString("usuario", usuarioString);
+                            editor.apply();
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            startActivity(intent);
+                        }
+
+                        @Override
+                        public void onFailure(Call<Usuario> call, Throwable t) {
+
+                        }
+                    });
                 }else{
                     /**
                      * existe asi que no puedo crearlo
@@ -172,7 +186,4 @@ public class LoginActivity extends AppCompatActivity {
      * METODO CREAR USUARIO AL REGISTRARSE
      */
 
-    /**
-     *
-     */
 }

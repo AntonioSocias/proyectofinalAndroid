@@ -2,7 +2,9 @@ package com.example.proyecto_gastos;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -33,7 +35,9 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
     Spinner spn_pagador;
     Button btn_aceptar, btn_cancelar;
     Retrofit retrofit;
+    String nombreUsuarioLogeado;
     List<Usuario> lista_usuarios;
+    Usuario usuarioLogeado;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -52,7 +56,13 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
         btn_aceptar = findViewById(R.id.buttonAceptar);
         btn_cancelar = findViewById(R.id.buttonCancelar);
 
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
 
+        /**
+         * RECUPERO EL USUARIOlOGEADO
+         */
+        nombreUsuarioLogeado = sharedPreferences.getString("usuario", "");
 
         /**
          * OBTENGO LOS USUARIOS PERTENECIENTES AL PROYECTO
@@ -226,6 +236,7 @@ public class Form_Creacion_Gasto extends AppCompatActivity {
                 for (Usuario usuario:lista_usuarios) {
                     lista_nombres_usuarios.add(usuario.getNombre());
                 }
+
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(Form_Creacion_Gasto.this, android.R.layout.simple_spinner_item, lista_nombres_usuarios);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spn_pagador.setAdapter(adapter);
